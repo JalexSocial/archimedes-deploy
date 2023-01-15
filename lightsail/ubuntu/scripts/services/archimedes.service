@@ -1,0 +1,16 @@
+[Unit]
+Description=Archimedes
+
+[Service]
+WorkingDirectory=/var/www/archimedes
+ExecStart=/usr/bin/dotnet /var/www/archimedes/Archimedes.dll
+Restart=always
+RestartSec=10
+SyslogIdentifier=Archimedes
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=DOPPLER_ACCESS_KEY=abc123
+
+[Install]
+WantedBy=multi-user.target
