@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# NOTE: After initialization make sure to click the networking tab and open up an https port
+
 # Update package list and upgrade all packages
 apt update -y
 
@@ -14,49 +16,31 @@ apt-get update && \
   
 apt-get update && \
   apt-get install -y aspnetcore-runtime-6.0
+  
 
-echo "[Unit]" >> "/etc/systemd/system/archimedes.service"
-echo "Description=Archimedes" >> "/etc/systemd/system/archimedes.service"
-echo "" >> "/etc/systemd/system/archimedes.service"
-echo "[Service]" >> "/etc/systemd/system/archimedes.service"
-echo "WorkingDirectory=/var/www/archimedes" >> "/etc/systemd/system/archimedes.service"
-echo "ExecStart=/usr/bin/dotnet /var/www/archimedes/Archimedes.dll" >> "/etc/systemd/system/archimedes.service"
-echo "Restart=always" >> "/etc/systemd/system/archimedes.service"
-echo "RestartSec=10" >> "/etc/systemd/system/archimedes.service"
-echo "SyslogIdentifier=Archimedes" >> "/etc/systemd/system/archimedes.service"
-echo "User=www-data" >> "/etc/systemd/system/archimedes.service"
-echo "Environment=ASPNETCORE_ENVIRONMENT=Production" >> "/etc/systemd/system/archimedes.service"
-echo "Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false" >> "/etc/systemd/system/archimedes.service"
-echo "Environment=DOPPLER_ACCESS_KEY=" >> "/etc/systemd/system/archimedes.service"
-echo "" >> "/etc/systemd/system/archimedes.service"
-echo "[Install]" >> "/etc/systemd/system/archimedes.service"
-echo "WantedBy=multi-user.target" >> "/etc/systemd/system/archimedes.service"
+mkdir /var/archimedes  
+cd /var/archimedes
+git clone https://github.com/RoverLink/archimedes-deploy  
 
-systemctl enable archimedes
-systemctl status nginx
-systemctl enable nginx
-
-mkdir /var/www/archimedes
-
-echo "server {" >> "/etc/nginx/sites-available/archimedes"
-echo "" >> "/etc/nginx/sites-available/archimedes"
-echo "        root /var/www/archimedes/;" >> "/etc/nginx/sites-available/archimedes"
-echo "" >> "/etc/nginx/sites-available/archimedes"
-echo "        server_name archimedes.jalex.io;" >> "/etc/nginx/sites-available/archimedes"
-echo "" >> "/etc/nginx/sites-available/archimedes"
-echo "        location / {" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_pass http://localhost:5000;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_http_version 1.1;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_set_header Upgrade $http_upgrade;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_set_header Connection keep-alive;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_set_header Host $host;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_cache_bypass $http_upgrade;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;" >> "/etc/nginx/sites-available/archimedes"
-echo "                proxy_set_header X-Forwarded-Proto $scheme;" >> "/etc/nginx/sites-available/archimedes"
-echo "        }" >> "/etc/nginx/sites-available/archimedes"
-echo "" >> "/etc/nginx/sites-available/archimedes"
-echo "}" >> "/etc/nginx/sites-available/archimedes"
+cp /var/archimedes/archimedes-deploy/lightsail/ubuntu/scripts/services/archimedes.service /etc/systemd/system/
+cp /var/archimedes/archimedes-deploy/lightsail/ubuntu/scripts/nginx/sites-available/* /etc/nginx/sites-available
 
 ln -s /etc/nginx/sites-available/archimedes /etc/nginx/sites-enabled/
 
+systemctl enable archimedes
+systemctl enable nginx
+
+mkdir /var/www/archimedes
 chown ubuntu /var/www/archimedes
+
+chmod 755 /var/archimedes/archimedes-deploy/lightsail/ubuntu/scripts/certbot/install-certbot.sh
+
+# Enable firewall
+apt-get install ufw
+
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+ufw enable
+
