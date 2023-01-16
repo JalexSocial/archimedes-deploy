@@ -20,8 +20,8 @@ apt-get update && \
 
 mkdir /var/archimedes  
 cd /var/archimedes
-chown ubuntu:ubuntu /var/archimedes
 git clone https://github.com/RoverLink/archimedes-deploy  
+chown -R ubuntu:ubuntu /var/archimedes
 
 cp /var/archimedes/archimedes-deploy/lightsail/ubuntu/scripts/services/archimedes.service /etc/systemd/system/
 cp /var/archimedes/archimedes-deploy/lightsail/ubuntu/scripts/nginx/sites-available/* /etc/nginx/sites-available
